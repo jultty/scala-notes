@@ -13,7 +13,9 @@ lazy val root = project
 
     libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
 
-    wartremoverErrors ++= Warts.unsafe,
+    wartremoverErrors ++= Warts.unsafe.filterNot(Set(
+      Wart.Var,
+    ).contains),
     wartremoverErrors ++= Seq(
       Wart.ArrayEquals, Wart.AnyVal, Wart.Equals, Wart.ExplicitImplicitTypes,
       Wart.FinalCaseClass, Wart.ImplicitConversion, 

@@ -1,7 +1,13 @@
 @main def hello: Unit =
-  println("Hello, Scala")
+  val a_char = ','
+  val immutable = "Scala"
+  var mutable = "lo"
+  println(s"Hel${mutable}es$a_char $immutable!")
 
 // ??? // throws unimplemented
+
+// Suppresses a WartRemover warning
+// @SuppressWarnings(Array("org.wartremover.warts.Var"))
 
 // imperative
 import scala.collection.mutable.ListBuffer
