@@ -35,7 +35,7 @@ Assignment:
 
 ```scala
 val nums = List(1, 2, 3)
-val p = Person("Martin", "Odersky")
+val p = Person("Martin", "Odersky") // not a built-in
 ```
 
 Lambdas:
@@ -88,10 +88,10 @@ def isTruthy(a: Matchable) = a match
 
 String interpolation:
 ```scala
-println(s"2 + 2 = ${2 + 2}")   // prints "2 + 2 = 4"
+println(s"2 + 2 = ${2 + 2}")   // "2 + 2 = 4"
 
 val x = -1
-println(s"x.abs = ${x.abs}")   // prints "x.abs = 1"
+println(s"x.abs = ${x.abs}")   // "x.abs = 1"
 
 val immutable = "Scala"
 val a_char = ','
@@ -109,7 +109,7 @@ val x = if a < b then a else b
 
 > Note that this really is an _expression_—not a statement. This means that it returns a value, so you can assign the result to a variable:
 
-> An expression returns a result, while a statement does not. Statements are typically used for their side-effects, such as using `println` to print to the console.
+> An expression returns a result, while a statement does not. Statements are typically used for their side-effects, such as using `println` to print to the console.[^5]
 
 ## Configuration
 
@@ -125,11 +125,12 @@ Suppress `info` level logging when running and watching runs:
 )
 ```
 
+## See also
+- <https://scalac.io/blog/scala-isnt-hard-how-to-master-scala-step-by-step/>
+
 ##  References
 [^1]: <https://scalac.io/blog/why-use-scala/>
 [^2]: <https://docs.scala-lang.org/scala3/book/scala-features.html>
 [^3]: <https://docs.scala-lang.org/scala3/book/why-scala-3.html>
 [^4]: <https://docs.scala-lang.org/scala3/book/taste-vars-data-types.html>
-
-## See also
-- <https://scalac.io/blog/scala-isnt-hard-how-to-master-scala-step-by-step/>
+[^5]: <https://docs.scala-lang.org/scala3/book/taste-control-structures.html>
