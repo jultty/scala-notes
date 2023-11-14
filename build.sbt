@@ -9,12 +9,13 @@ lazy val root = project
 
     logLevel := Level.Warn,
     run / watchLogLevel := Level.Warn,
+    test / watchLogLevel := Level.Warn,
     Global / onChangedBuildSource := ReloadOnSourceChanges,
 
     libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
 
     wartremoverErrors ++= Warts.unsafe.filterNot(Set(
-      Wart.Var,
+      Wart.Var, Wart.Any
     ).contains),
     wartremoverErrors ++= Seq(
       Wart.ArrayEquals, Wart.AnyVal, Wart.Equals, Wart.ExplicitImplicitTypes,
@@ -23,9 +24,10 @@ lazy val root = project
       Wart.Nothing, Wart.Option2Iterable, Wart.PublicInference,
     ),
     wartremoverErrors ++= Seq(
-      ContribWart.OldTime, ContribWart.UnsafeInheritance,
-      ContribWart.MissingOverride, ContribWart.NoNeedForMonad, 
-      ContribWart.UnintendedLaziness, ContribWart.DiscardedFuture,
+      ContribWart.DiscardedFuture, ContribWart.ExposedTuples, 
+      ContribWart.NoNeedForMonad, ContribWart.OldTime,  
+      ContribWart.SealedCaseClass, ContribWart.SomeApply, 
+      ContribWart.UnintendedLaziness, 
     ),
 
     wartremover.WartRemover.dependsOnLocalProjectWarts(customWarts),
@@ -34,7 +36,6 @@ lazy val root = project
       Wart.custom("customWarts.CharTimesAny"), Wart.custom("customWarts.CharDividedByAny"),
       Wart.custom("customWarts.CharEqualsAny"),
     ),
-
   )
 
 lazy val customWarts = project.in(file(".warts")).settings(
