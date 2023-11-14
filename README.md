@@ -175,7 +175,6 @@ Types of fixtures:
 
 > Functional test-local fixtures are desirable since they are easy to reason about. Try to use functional test-local fixtures when possible, and only resort to reusable or ad-hoc fixtures when necessary.
 
-
 ```scala
 import java.nio.file._
 
@@ -196,7 +195,7 @@ class FunFixture extends munit.FunSuite {
 }
 ```
 
-This can now be used to compose multiple fixtures into a single one:
+> Use `FunFixture.map2` to compose multiple fixtures into a single fixture.
 
 ```scala
 // Fixture with access to two temporary files
@@ -211,9 +210,7 @@ files2.test("two") {
 }
 ```
 
-#### Reusable test-local fixtures
-#### Reusable suite-local fixtures
-#### Ad-hoc suite-local fixtures
+See [MUnit docs](https://scalameta.org/munit/docs/fixtures.html#reusable-test-local-fixtures) for Reusable test-local fixtures, Reusable suite-local fixtures and Ad-hoc suite-local fixtures.
 
 ### Avoiding stateful operations in the constructor
 ```scala
@@ -230,6 +227,34 @@ class MySuite extends munit.FunSuite {
 ```
 
 > For example, IDEs like IntelliJ may load the class to discover the names of the test cases that are available.[^6]
+
+### Clues
+
+> Use `clue()` to include optional clues in the boolean condition based on values in the expression.
+
+```scala
+assert(clue(a) > clue(b))
+```
+
+Add this to `build.sbt` to prevent errors where the name of the variable is not shown in the clue:
+
+```scala
+scalacOptions += "-Yrangepos"
+```
+
+### Assertions
+
+- `assert(bool)`
+- `assertEquals(any, any)` 
+  - > Comparing two values of different types is a compile error.
+  - > It's a compile error even if the comparison is true at runtime.
+  - > It's OK to compare two types as long as one argument is a subtype of the other type.
+- `assertNotEquals(any, any)`
+- `assertNoDiff(string, string)` compare two multiline strings
+- `intercept(exception)` expect a particular exception to be thrown
+- `interceptMessage(msg)` expect thrown exception to have a specific error message
+- `fail()` fail the test immediately
+- `compileErrors(string)` assert code snippet fails with a specific compile-time error message
 
 ## Tooling
 ### Suppress a WartRemover warning
@@ -255,6 +280,7 @@ Suppress `info` level logging when running and watching runs:
 ## See also
 - <https://scalac.io/blog/scala-isnt-hard-how-to-master-scala-step-by-step/>
 - <https://scalameta.org/munit/docs/getting-started.html>
+- <https://scalameta.org/munit/docs/assertions.html>
 
 ##  References
 [^1]: <https://scalac.io/blog/why-use-scala/>
@@ -263,3 +289,4 @@ Suppress `info` level logging when running and watching runs:
 [^4]: <https://docs.scala-lang.org/scala3/book/taste-vars-data-types.html>
 [^5]: <https://docs.scala-lang.org/scala3/book/taste-control-structures.html>
 [^6]: <https://scalameta.org/munit/docs/fixtures.html>
+

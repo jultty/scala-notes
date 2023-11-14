@@ -2,28 +2,28 @@ import scala.concurrent.duration.Duration
 
 abstract class BaseSuite extends munit.FunSuite {
   override val munitTimeout = Duration(10, "sec")
-  val base: Boolean = true
+  val on_base: String = "on base"
 }
 
 class FunFixture extends BaseSuite {
 
-  var check: Boolean = _
+  var on_setup: String = ""
 
-  val fixture = FunFixture[Boolean](
-    setup = { _ => check = true; base },
-    teardown = { (c: Boolean) => var c = false },
+  val fixture = FunFixture[String](
+    setup = { _ => on_setup = "on setup"; on_setup },
+    teardown = { _ => on_setup = "" },
   )
 
   test("base suite is extended") {
-    assert(base)
+    assertEquals(clue(on_base), "on base")
   }
 
   test(".fail test fails".fail) {
     assertEquals(1, 0)
   }
 
-  fixture.test("fixture check is set during setup") { (check: Boolean) =>
-    assert(check)
+  fixture.test("fixture check is set during setup") { _ =>
+    assertEquals(clue(on_setup), "on setup") 
   }
 }
 

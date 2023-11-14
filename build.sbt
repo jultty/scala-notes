@@ -11,6 +11,7 @@ lazy val root = project
     run / watchLogLevel := Level.Warn,
     test / watchLogLevel := Level.Warn,
     Global / onChangedBuildSource := ReloadOnSourceChanges,
+    test / watchBeforeCommand := Watch.clearScreen,
 
     libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
 
