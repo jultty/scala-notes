@@ -1,11 +1,10 @@
 import scala.util.Properties
 
 @main def hello: Unit =
+  print_environment_properties
+
+def print_environment_properties: Unit =
   println(s"Scala Library version ${Properties.versionNumberString}")
-  println(s"Development version: " +
-    s"${Properties.developmentVersion.getOrElse("N/A")} " +
-    s"Release version: ${Properties.releaseVersion.getOrElse("N/A")}"
-  )
   println(
     s"${Properties.javaVmVendor} " +
     s"${Properties.javaVmName} " +
