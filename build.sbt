@@ -10,8 +10,22 @@ lazy val root = project
     logLevel := Level.Warn,
     run / watchLogLevel := Level.Warn,
     test / watchLogLevel := Level.Warn,
-    Global / onChangedBuildSource := ReloadOnSourceChanges,
     test / watchBeforeCommand := Watch.clearScreen,
+    Global / onChangedBuildSource := ReloadOnSourceChanges,
+
+    scalacOptions ++= Seq(
+      "-unchecked",
+      "-explain",
+      "-Xprint-diff",
+      "-Xprint-diff-del",
+      "-Xprint-inline",
+      "-Ycheck-reentrant",
+      "-Ycook-comments",
+      "-Yprint-debug",
+      "-Yprint-pos-syms",
+      "-Yprint-debug-owners",
+      "-Yshow-var-bounds",
+    ),
 
     libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
 
