@@ -4,7 +4,7 @@ lazy val root = project
   .in(file("."))
   .settings(
     name := "scala-notes",
-    version := "0.1.0",
+    version := "0.2.0",
     scalaVersion := scala3Version,
 
     logLevel := Level.Warn,
@@ -12,20 +12,7 @@ lazy val root = project
     test / watchLogLevel := Level.Warn,
     test / watchBeforeCommand := Watch.clearScreen,
     Global / onChangedBuildSource := ReloadOnSourceChanges,
-
-    scalacOptions ++= Seq(
-      "-unchecked",
-      "-explain",
-      "-Xprint-diff",
-      "-Xprint-diff-del",
-      "-Xprint-inline",
-      "-Ycheck-reentrant",
-      "-Ycook-comments",
-      "-Yprint-debug",
-      "-Yprint-pos-syms",
-      "-Yprint-debug-owners",
-      "-Yshow-var-bounds",
-    ),
+    Global / cancelable := true,
 
     libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
 
@@ -44,7 +31,6 @@ lazy val root = project
       ContribWart.SealedCaseClass, ContribWart.SomeApply, 
       ContribWart.UnintendedLaziness, 
     ),
-
     wartremover.WartRemover.dependsOnLocalProjectWarts(customWarts),
     wartremoverErrors ++= Seq(
       Wart.custom("customWarts.CharPlusAny"), Wart.custom("customWarts.CharMinusAny"),
@@ -56,6 +42,6 @@ lazy val root = project
 lazy val customWarts = project.in(file(".warts")).settings(
   scalaVersion := scala3Version,
   libraryDependencies ++= Seq(
-    "org.wartremover" % "wartremover" % wartremover.Wart.PluginVersion cross CrossVersion.full
+      "org.wartremover" % "wartremover" % wartremover.Wart.PluginVersion cross CrossVersion.full
   ),
 )

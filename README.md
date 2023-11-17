@@ -99,6 +99,22 @@ def isTruthy(a: Matchable) = a match
   case _ => true
 ```
 
+```scala
+val p = Person("Fred")
+
+// later in the code
+p match
+  case Person(name) if name == "Fred" =>
+    println(s"$name says, Yubba dubba doo")
+
+  case Person(name) if name == "Bam Bam" =>
+    println(s"$name says, Bam bam!")
+
+  case _ => println("Watch the Flintstones!")
+```
+
+> There’s much more to pattern matching in Scala. Patterns can be nested, results of patterns can be bound, and pattern matching can even be user-defined. See the pattern matching examples in the [Control Structures chapter](https://docs.scala-lang.org/scala3/book/control-structures.html) for more details.[^7]
+
 ### String interpolation
 ```scala
 println(s"2 + 2 = ${2 + 2}")   // "2 + 2 = 4"
@@ -281,6 +297,10 @@ Suppress `info` level logging when running and watching runs:
 - <https://scalac.io/blog/scala-isnt-hard-how-to-master-scala-step-by-step/>
 - <https://scalameta.org/munit/docs/getting-started.html>
 - <https://scalameta.org/munit/docs/assertions.html>
+- <https://www.baeldung.com/scala/sbt-scoverage-code-analysis>
+- <https://scala-cli.virtuslab.org/>
+- <https://typelevel.org/cats/>
+- <https://zio.dev/>
 
 ##  References
 [^1]: <https://scalac.io/blog/why-use-scala/>
@@ -289,4 +309,4 @@ Suppress `info` level logging when running and watching runs:
 [^4]: <https://docs.scala-lang.org/scala3/book/taste-vars-data-types.html>
 [^5]: <https://docs.scala-lang.org/scala3/book/taste-control-structures.html>
 [^6]: <https://scalameta.org/munit/docs/fixtures.html>
-
+[^7]: <https://docs.scala-lang.org/scala3/book/taste-control-structures.html#match-expressions>
