@@ -1,12 +1,13 @@
 import scala.concurrent.duration.Duration
 import scala.collection.mutable.ArrayBuffer
+import javax.lang.model.`type`.UnknownTypeException
 
 abstract class BaseSuite extends munit.FunSuite {
   override val munitTimeout = Duration(10, "sec")
   val on_base: String = "on base"
 }
 
-class FunFixture extends BaseSuite {
+class BaseFixture extends BaseSuite {
 
   var on_setup: String = ""
   var ints = ArrayBuffer.empty[Int]
@@ -18,7 +19,7 @@ class FunFixture extends BaseSuite {
         on_setup 
       }
     },
-    teardown = { _ => on_setup = "" },
+      teardown = { _ => on_setup = "this fixture was torn down" },
   )
 
   f.test("base suite is extended") { _ =>
@@ -33,6 +34,9 @@ class FunFixture extends BaseSuite {
   f.test(".fail test fails".fail) { _ =>
     assert(false)
   }
+}
+
+class ControlStructures extends BaseFixture {
 
   f.test("control structures are expressions") { _ =>
     val is = if 1 > 0 then "greater" else "less"
@@ -158,3 +162,123 @@ class FunFixture extends BaseSuite {
   }
 }
 
+class DomainModelling extends BaseFixture {
+
+  // Object-oriented
+
+  f.test("traits are similar to interfaces") { _ =>
+    trait Speaker:
+      def speak(): String
+
+    trait TailWagger:
+      def startTail(): Unit = {}
+      def stopTail(): Unit = {}
+
+    trait Runner:
+      def startRunning(): Unit = {}
+      def stopRunning(): Unit = {}
+
+    class Dog(val name: String) extends Speaker, TailWagger, Runner:
+      def speak(): String = "Woof!"
+
+    class Cat(val name: String) extends Speaker, TailWagger, Runner:
+      def speak(): String = "Meow!"
+      override def startRunning(): Unit = {}
+      override def stopRunning(): Unit = {}
+
+    val d = Dog("Rover")
+    assertEquals(d.name, "Rover")
+    val c = Cat("Morris")
+    assertEquals(d.speak(), "Woof!")
+    assertNotEquals(d.speak(), "Meow!")
+  }
+
+  f.test("class declarations create constructors") { _ =>
+    class Person(var firstName: String, var lastName: String):
+      def getFullName() = s"$firstName $lastName"
+
+    val p = Person("John", "Stephens")
+    assertEquals(p.firstName, "John")
+    p.lastName = "Legend"
+    assertEquals(p.getFullName(), "John Legend")
+  }
+
+  f.test("parameters not assigned as val or var exist but are not accessible") { _ =>
+    class Person(firstName: String, val lastName: String):
+      def getFullName() = s"$firstName $lastName"
+
+    val p = Person("Jane", "Doe")
+    // p.firstName // won't compile: Reference Error
+    assertEquals(p.getFullName(), "Jane Doe") 
+  }
+
+  // Functional
+  
+  f.test("algebraic sum types can be modeled with enums") { _ =>
+    enum CrustSize:
+      case Small, Medium, Large
+
+    enum CrustType:
+      case Thin, Thick, Regular
+
+    enum Topping:
+      case Cheese, Pepperoni, BlackOlives, GreenOlives, Onions
+
+    import CrustSize.*
+    val currentCrustSize = Small
+
+    val size = currentCrustSize match
+      case Small => "Small crust size"
+      case Medium => "Medium crust size"
+      case Large => "Large crust size"
+
+    assertEquals(size, "Small crust size")
+  }
+
+  f.test("sum types can be defined using enum cases with parameters") { _ =>
+    enum Nat:
+      case Zero
+      case Succ(pred: Nat)
+
+    val number: Nat = Nat.Succ(Nat.Succ(Nat.Zero)) // represents 2
+
+    def increment(n: Nat): Nat = n match
+      case Nat.Zero => Nat.Succ(Nat.Zero)
+      case Nat.Succ(pred) => Nat.Succ(increment(pred))
+
+    // Nat.Succ(Nat.Succ(Nat.Succ(Nat.Zero))), representing 3
+    val incrementedNum: Nat = increment(number) 
+
+    assertEquals(
+      incrementedNum,
+      Nat.Succ(Nat.Succ(Nat.Succ(Nat.Zero))),
+    )
+  }
+
+    f.test("product types can be defined using case classes") { _ =>
+      case class Musician(
+        name: String,
+        vocation: String,
+      )
+
+      val m = Musician("Reginald", "Singer")
+      assertEquals(m.name, "Reginald")
+      assertEquals(m.vocation, "Singer")
+
+      // m.name = "Joe" // won't compile: Reassignment to val
+      val m2 = m.copy(name = "나윤선")
+      assertEquals(m2.name, "나윤선")
+    }
+
+    f.test("methods can be chained for less assignments and brevity") { _ =>
+      val nums = (1 to 10).toList
+
+      val result = nums.filter(_ > 3)
+        .filter(_ < 7)
+        .map(_ * 10)
+
+        assertEquals(result, List(40, 50, 60))
+    }
+
+    
+  }

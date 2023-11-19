@@ -20,7 +20,7 @@ lazy val root = project
       Wart.Var, Wart.Any
     ).contains),
     wartremoverErrors ++= Seq(
-      Wart.ArrayEquals, Wart.AnyVal, Wart.Equals, Wart.ExplicitImplicitTypes,
+      Wart.ArrayEquals, Wart.AnyVal, Wart.ExplicitImplicitTypes,
       Wart.FinalCaseClass, Wart.ImplicitConversion, 
       Wart.JavaConversions, Wart.JavaSerializable, Wart.LeakingSealed, 
       Wart.Nothing, Wart.Option2Iterable, Wart.PublicInference,
