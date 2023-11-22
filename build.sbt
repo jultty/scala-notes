@@ -16,6 +16,14 @@ lazy val root = project
 
     libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
 
+    scalacOptions ++= Seq(
+      "-encoding", "utf8",
+      "-new-syntax",
+      "-print-lines",
+      "-Yexplicit-nulls",
+      "-Ysafe-init",
+      ),
+
     wartremoverErrors ++= Warts.unsafe.filterNot(Set(
       Wart.Var, Wart.Any
     ).contains),

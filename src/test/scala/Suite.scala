@@ -280,5 +280,6 @@ class DomainModelling extends BaseFixture {
         assertEquals(result, List(40, 50, 60))
     }
 
+
     
   }

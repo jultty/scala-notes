@@ -38,6 +38,142 @@ val nums = List(1, 2, 3)
 val p = Person("Martin", "Odersky") // not a built-in
 ```
 
+### Types
+
+All types inherit from the supertype `Any`. This top type has a subtype called `Matchable`, which comprehends all types that can be pattern matched.
+
+The last these high-level, broader types explained in the "A First Look at Types" section of the Scala Book are the direct children of `Matchable`: `AnyVal` and `AnyRef`/`Object`.
+
+From these two come the more specific types:
+
+`AnyVal` represents **non-nullable value types** such as `Double`, `Float`, `Long`, `Int`, `Short`, `Byte`, `Char`, `Unit`, and `Boolean`.
+
+`AnyRef` represents **reference types**, which includes all non-value types and all user-defined types. It corresponds to Java's `java.lang.Object`.[^14] This includes strings, classes, objects, functions and compound types like lists and arrays.
+
+```scala
+val list: List[Any] = List(
+  "a string",
+  732,  // an integer
+  'c',  // a character
+  '\'', // a character with a backslash escape
+  true, // a boolean value
+  () => "an anonymous function returning a string"
+)
+
+list.foreach(element => println(element))
+// a string
+// 732
+// c
+// '
+// true
+// <function>
+```
+
+#### Unit
+> `Unit` is a value type which carries no meaningful information. There is exactly one instance of `Unit` which we can refer to as: `()`. […] In statement-based languages, `void` is used for methods that don’t return anything. If you write methods in Scala that have no return value, Unit is used for the same purpose.[^14]
+
+#### Type inference
+```scala
+val i = 123 // defaults to int
+val  x = 1.0 // defaults to double
+
+val s = "Bill" // string
+val c = 'a' // char
+
+val x = 1_000L   // val x: Long = 1000
+val y = 2.2D     // val y: Double = 2.2
+val z = -3.3F    // val z: Float = -3.3
+
+// other bases and notations
+val q = .25      // val q: Double = 0.25
+val r = 2.5e-1   // val r: Double = 0.25
+val s = .0025e2F // val s: Float = 0.25
+val a = 0xACE    // val a: Int = 2766
+val b = 0xfd_3aL // val b: Long = 64826
+```
+
+#### String
+
+For multiline String, indentation can be stripped like this:
+
+```scala
+val quote = """The essence of Scala:
+               |Fusion of functional and object-oriented
+               |programming in a typed setting.""".stripMargin
+```
+
+Scala has three builtin string interpolation methods: `s`, `f` and `raw`
+
+```scala
+println(s"$name is $age years old")   // "James is 30 years old"
+println(s"2 + 2 = ${2 + 2}")   // "2 + 2 = 4"
+val x = -1
+println(s"x.abs = ${x.abs}")   // "x.abs = 1"
+println(s"New offers starting at $$14.99")   // "New offers starting at $14.99"
+println(s"""{"name":"James"}""")     // `{"name":"James"}`
+println(s"""name: "$name",
+           |age: $age""".stripMargin)
+```
+
+The `f` interpolator allows for specifying the expected type:
+
+```scala
+println(f"$name%s is $height%2.2f meters tall")  // "James is 1.90 meters tall"
+```
+
+> The `f` interpolator makes use of the string format utilities available from Java. The formats allowed after the `%` character are outlined in the [Formatter javadoc](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Formatter.html#detail). If there is no `%` character after a variable definition a formatter of `%s` (`String`) is assumed. Finally, as in Java, use `%%` to get a literal `%` character in the output string.[^17]
+
+The `raw` interpolator will not interpret escape codes like `s` will:
+
+```scala
+scala> s"a\nb"
+res0: String =
+a
+b
+scala> raw"a\nb"
+res1: String = a\nb
+```
+
+#### Casting
+
+Casting is allowed in this direction:
+
+    Byte -> Short -> Int -> Long -> Float -> Double
+
+Also, `Char` can be cast to `Int`.
+
+```scala
+val b: Byte = 127
+val i: Int = b  // 127
+val x: Long = 987654321
+val y: Float = x.toFloat  // 9.8765434E8 (`.toFloat` is required because of precision loss)
+val z: Long = y  // Error
+```
+
+#### Nothing and null
+
+In the Scala type hierarchy, `Nothing` is a subtype of all types, including `Null`, which itself is a subtype of all `AnyRef` children ([see the book's diagram](https://docs.scala-lang.org/scala3/book/first-look-at-types.html)).
+
+Although it is possible to use `Null` as a subtype of `AnyRef`, there are [compiler option](https://docs.scala-lang.org/scala3/reference/experimental/explicit-nulls.html) that will make `AnyRef` children non-nullable and cause implicit `null` initialization errors.
+
+The following can be added to the project settings in `build.sbt` to achieve this:
+
+```scala
+scalacOptions ++= Seq(
+  "-Yexplicit-nulls",
+  "-Ysafe-init",
+),
+```
+
+Now for `ǹull` to work a value type must use a union type:[^15]
+
+```scala
+val x: String = null // error: found `Null`, but required `String`
+val x: String | Null = null // OK
+```
+
+Even better than this, though, is to use something like [`Option`](https://scala-lang.org/api/3.x/scala/Option.html) to handle the possibilities in a more robust way.[^16]
+
 ### Methods
 
 ```scala
@@ -472,7 +608,7 @@ They are called sum and product types because of how you can obtain the total nu
 In Scala, product types are typically defined using case classes:
 
 ```scala
-case class WeatherForecast(latitude: Double, Longitude)
+case class WeatherForecast(latitude: Double, longitude: Double)
 ```
 
 Considered as a function, the class above could be written as `(Double, Double) => WeatherForecast`, meaning it takes two doubles and returns a `WeatherForecast`. 
@@ -688,3 +824,7 @@ Suppress `info` level logging when running and watching runs:
 [^11]: <https://youtu.be/0wmcCdoExbM>
 [^12]: <https://docs.scala-lang.org/scala3/book/taste-methods.html>
 [^13]: <https://docs.scala-lang.org/scala3/book/taste-collections.html>
+[^14]: <https://docs.scala-lang.org/scala3/book/first-look-at-types.html>
+[^15]: <https://docs.scala-lang.org/scala3/reference/experimental/explicit-nulls.html#>
+[^16]: <https://docs.scala-lang.org/scala3/book/fp-functional-error-handling.html>
+[^17]: <https://docs.scala-lang.org/scala3/book/string-interpolation.html>
