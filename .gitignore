@@ -1,7 +1,4 @@
-# macOS
-.DS_Store
-
-# sbt specific
+# build
 dist/*
 target/
 lib_managed/
@@ -14,9 +11,12 @@ project/local-plugins.sbt
 .ensime_cache/
 .sbt-scripted/
 local.sbt
+.scala-build
 
-# Bloop
-.bsp
+# IDEA
+.idea
+.idea_modules
+/.worksheet/
 
 # VS Code
 .vscode/
@@ -26,7 +26,9 @@ local.sbt
 .metals/
 metals.sbt
 
-# IDEA
-.idea
-.idea_modules
-/.worksheet/
+# Bloop
+.bsp
+
+
+# macOS
+.DS_Store

@@ -1,5 +1,13 @@
 # scala notes
 
+Notes on studying Scala, mainly from reading documentation such as:
+- The [Scala Book](https://docs.scala-lang.org/scala3/book/introduction.html)
+- The [Scala 3 Reference](https://docs.scala-lang.org/scala3/reference/)
+- The [Munit docs](https://scalameta.org/munit/docs/getting-started.html)
+- A few blogs and videos, see the [footnotes](#References) for all references
+
+Aside from this README, the [tests](src/test/scala/Suite.scala) contain many runnable examples of some concepts explored here and many only explored there.
+
 ## Functional programming
 
 > **Functional Programming** is programming with functions. When we say functions, we mean mathematical functions, which are supposed to have the following properties:
@@ -46,7 +54,7 @@ The last these high-level, broader types explained in the "A First Look at Types
 
 From these two come the more specific types:
 
-`AnyVal` represents **non-nullable value types** such as `Double`, `Float`, `Long`, `Int`, `Short`, `Byte`, `Char`, `Unit`, and `Boolean`.
+`Int | AnyVal` represents **non-nullable value types** such as `Double`, `Float`, `Long`, `Int`, `Short`, `Byte`, `Char`, `Unit`, and `Boolean`.
 
 `AnyRef` represents **reference types**, which includes all non-value types and all user-defined types. It corresponds to Java's `java.lang.Object`.[^14] This includes strings, classes, objects, functions and compound types like lists and arrays.
 
@@ -165,7 +173,7 @@ scalacOptions ++= Seq(
 ),
 ```
 
-Now for `ǹull` to work a value type must use a union type:[^15]
+Now for `null` to work a value type must use a union type:[^15]
 
 ```scala
 val x: String = null // error: found `Null`, but required `String`
@@ -282,16 +290,27 @@ class Dog extends Animal, HasTail:
 ```
 
 ### Case class
+
+Using a case class has the benefit that the compiler will generate an`unapply` method for pattern matching, a `copy` method to create modified copies of an instance, `equals` and `hashCode` methods, a `toString` method.[^21]
+
 ```scala
-final case class Person(
-  name: String,
-  surname: String,
-)
+// Case classes can be used as patterns
+christina match
+  case Person(n, r) => println("name is " + n)
 
-def p(name: String, surname: String): Person =
-  Person(name, surname)
+// `equals` and `hashCode` methods generated for you
+val hannah = Person("Hannah", "niece")
+christina == hannah       // false
 
-val jane = p("Jane", "Doe")
+// `toString` method
+println(christina)        // Person(Christina,niece)
+
+// built-in `copy` method
+case class BaseballTeam(name: String, lastWorldSeriesWin: Int)
+val cubs1908 = BaseballTeam("Chicago Cubs", 1908)
+val cubs2016 = cubs1908.copy(lastWorldSeriesWin = 2016)
+// result:
+// cubs2016: BaseballTeam = BaseballTeam(Chicago Cubs,2016)
 ```
 
 ### Pattern matching
@@ -324,6 +343,28 @@ p match
 
 > There’s much more to pattern matching in Scala. Patterns can be nested, results of patterns can be bound, and pattern matching can even be user-defined. See the pattern matching examples in the [Control Structures chapter](https://docs.scala-lang.org/scala3/book/control-structures.html) for more details.[^7]
 
+When matching a catch-all, it's possible to use the matched value in the body of the match case:
+
+```scala
+i match
+  case 0 => println("1")
+  case 1 => println("2")
+  case what => println(s"You gave me: $what")
+```
+
+For this to work, the variable name on the left must be lowercase. If uppercase, a corresponding variable will be used from the scope:[^20]
+
+```scala
+val N = 42
+val r = i match
+  case 0 => println("1")
+  case 1 => println("2")
+  case N => println("42")
+  case n => println(s"You gave me: $n" )
+
+r // "42"
+```
+
 ### String interpolation
 ```scala
 println(s"2 + 2 = ${2 + 2}")   // "2 + 2 = 4"
@@ -353,6 +394,76 @@ val x = if a < b then a else b
 > Note that this really is an _expression_—not a statement. This means that it returns a value, so you can assign the result to a variable:
 
 > An expression returns a result, while a statement does not. Statements are typically used for their side-effects, such as using `println` to print to the console.[^5]
+
+#### Expression-oriented programming
+
+> […] lines of code that don’t return values are called statements, and they’re used for their side-effects. For example, these [last two] lines of code don’t return values, so they’re used for their side effects:
+
+```scala
+val minValue = if a < b then a else b // expression
+if a == b then action() // statement 
+println("Hello") // statement
+```
+
+> The first example runs the `action` method as a side effect when `a` is equal to `b`. The second example is used for the side effect of printing a string to STDOUT. As you learn more about Scala you’ll find yourself writing more _expressions_ and fewer _statements_.[^18]
+
+#### Pattern matching
+
+```scala
+import scala.annotation.switch
+
+@switch val i = 2
+
+val day = i match
+  case 0 => "Sunday"
+  case 1 => "Monday"
+  case 2 => "Tuesday"
+  case 3 => "Wednesday"
+  case 4 => "Thursday"
+  case 5 => "Friday"
+  case 6 => "Saturday"
+  case _ => "invalid day"   // the default, catch-all
+```
+
+> When writing simple `match` expressions like this, it’s recommended to use the `@switch` annotation on the variable `i`. This annotation provides a compile-time warning if the switch can’t be compiled to a `tableswitch` or `lookupswitch`, which are better for performance.[^19]
+
+There are many different forms of patterns that can be used to write match expressions. Examples include:[^22]
+
+```scala
+def pattern(x: Matchable): String = x match
+
+  // constant patterns
+  case 0 => "zero"
+  case true => "true"
+  case "hello" => "you said 'hello'"
+  case Nil => "an empty List"
+
+  // sequence patterns
+  case List(0, _, _) => "a 3-element list with 0 as the first element"
+  case List(1, _*) => "list, starts with 1, has any number of elements"
+  case Vector(1, _*) => "vector, starts w/ 1, has any number of elements"
+
+  // tuple patterns
+  case (a, b) => s"got $a and $b"
+  case (a, b, c) => s"got $a, $b, and $c"
+
+  // constructor patterns
+  case Person(first, "Alexander") => s"Alexander, first name = $first"
+  case Dog("Zeus") => "found a dog named Zeus"
+
+  // type test patterns
+  case s: String => s"got a string: $s"
+  case i: Int => s"got an int: $i"
+  case f: Float => s"got a float: $f"
+  case a: Array[Int] => s"array of int: ${a.mkString(",")}"
+  case as: Array[String] => s"string array: ${as.mkString(",")}"
+  case d: Dog => s"dog: ${d.name}"
+  case list: List[?] => s"got a List: $list"
+  case m: Map[?, ?] => m.toString
+
+  // the default wildcard pattern
+  case _ => "Unknown"
+```
 
 ### Domain Modelling
 
@@ -828,3 +939,8 @@ Suppress `info` level logging when running and watching runs:
 [^15]: <https://docs.scala-lang.org/scala3/reference/experimental/explicit-nulls.html#>
 [^16]: <https://docs.scala-lang.org/scala3/book/fp-functional-error-handling.html>
 [^17]: <https://docs.scala-lang.org/scala3/book/string-interpolation.html>
+[^18]: <https://docs.scala-lang.org/scala3/book/control-structures.html>
+[^19]: <https://docs.scala-lang.org/scala3/book/control-structures.html#match-expressions>
+[^20]: <https://docs.scala-lang.org/scala3/book/control-structures.html#using-the-default-value>
+[^21]: <https://docs.scala-lang.org/scala3/book/domain-modeling-tools.html#case-classes>
+[^22]: <https://docs.scala-lang.org/scala3/book/control-structures.html#match-expressions-support-many-different-types-of-patterns>

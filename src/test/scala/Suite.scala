@@ -1,6 +1,8 @@
 import scala.concurrent.duration.Duration
 import scala.collection.mutable.ArrayBuffer
 import javax.lang.model.`type`.UnknownTypeException
+import scala.collection.mutable.ListBuffer
+import scala.annotation.switch
 
 abstract class BaseSuite extends munit.FunSuite {
   override val munitTimeout = Duration(10, "sec")
@@ -23,12 +25,12 @@ class BaseFixture extends BaseSuite {
   )
 
   f.test("base suite is extended") { _ =>
-    assertEquals(clue(on_base), "on base")
+    assertEquals(on_base, "on base")
   }
 
   f.test("fixture setup context is set") { _ =>
-    assertEquals(clue(on_base), "on base")
-    assertEquals(clue(on_setup), "on setup") 
+    assertEquals(on_base, "on base")
+    assertEquals(on_setup, "on setup") 
   }
 
   f.test(".fail test fails".fail) { _ =>
@@ -40,13 +42,85 @@ class ControlStructures extends BaseFixture {
 
   f.test("control structures are expressions") { _ =>
     val is = if 1 > 0 then "greater" else "less"
-    assertEquals(clue(is), clue("greater"))
+    assertEquals(is, "greater")
+  }
+
+  f.test("scala 3 ifs don't need braces") { _ => 
+
+    val x = 
+      if 0 == 1 then
+        val a = 2
+        a + 3
+      else if 2 == 2 then
+        val b = 3
+        b - 1
+      else
+        val c = 4
+        c / 2
+      end if // optional
+
+    assertEquals(x, 2)
   }
 
   f.test("for loop generator") { _ => 
     var ints2 = ArrayBuffer.empty[Int]
+    var ints3 = ArrayBuffer.empty[Int]
+
+    // one-liner
     for i <- ints do ints2 += i
-    assertEquals(clue(ints2), clue(ArrayBuffer(1, 2, 3, 4, 5)))
+    assertEquals(ints2, ArrayBuffer(1, 2, 3, 4, 5))
+
+    // multi-line
+    for i <- ints 
+    do 
+      val j = i * -1
+      ints3 += j
+
+    assertEquals(ints3, ArrayBuffer(-1, -2, -3, -4, -5))
+  }
+
+  f.test("for loops can have multiple generators") { _ =>
+  
+    var list = ListBuffer.empty[Char]
+
+    for
+      i <- 'a' to 'b'
+      j <- 'c' to 'd'
+      k <- 'e' to 'f'
+    do
+      list += i
+      list += j
+      list += k
+
+    assertEquals(list, ListBuffer(
+      'a', 'c', 'e', 
+      'a', 'c', 'f', 
+      'a', 'd', 'e', 
+      'a', 'd', 'f', 
+      'b', 'c', 'e', 
+      'b', 'c', 'f', 
+      'b', 'd', 'e', 
+      'b', 'd', 'f',
+    ))
+  }
+
+  f.test("for loops can iterate maps") { _ =>
+
+    var list = ListBuffer.empty[String]
+
+    val states = Map(
+      "AP" -> "Amapá",
+      "MT" -> "Mato Grosso",
+      "CE" -> "Ceará",
+    )
+
+    for (abbrev, full_name) <- states do list += s"$abbrev: $full_name"
+
+    assertEquals(list, ListBuffer(
+      "AP: Amapá",
+      "MT: Mato Grosso",
+      "CE: Ceará",
+    ))
   }
 
   f.test("for loop guards") { _ =>
@@ -55,7 +129,7 @@ class ControlStructures extends BaseFixture {
       if i > 3
     do
       greater += i
-    assertEquals(clue(greater), clue(ArrayBuffer(4, 5)))
+    assertEquals(greater, ArrayBuffer(4, 5))
   }
 
   f.test("for with multiple guards and generators") { _ =>
@@ -72,8 +146,8 @@ class ControlStructures extends BaseFixture {
       last_i = i 
       last_j = j
 
-    assertEquals(clue(last_i), clue(2))
-    assertEquals(clue(last_j), clue('b'))
+    assertEquals(last_i, 2)
+    assertEquals(last_j, 'b')
   }
 
   f.test("for yield returns the same data structure with results") { _ =>
@@ -81,24 +155,58 @@ class ControlStructures extends BaseFixture {
     assertEquals(doubles, ArrayBuffer(2, 4, 6, 8, 10))
   }
 
-  f.test("for can have multiple yield expressions") { _ => 
+  f.test("yield expressions can have a block body") { _ => 
+    val names = List("_olivia", "_walter", "_peter")
+
+    val cap_names = for name <- names yield
+      val name_without_underscore = name.drop(1)
+      name_without_underscore.capitalize
+
+    assertEquals(cap_names, List("Olivia", "Walter", "Peter"))
+  }
+
+  f.test("for yield is equivalent to a map expression") { _ =>
+    val map_list = (10 to 22).map(_ * 2)
+    val for_list = for i <- 10 to 22 yield i * 2
+    assertEquals(map_list, for_list)
+  }
+
+  f.test("for can yield multiple values") { _ => 
 
     val results = ArrayBuffer.empty[Int]
 
-    val result = for {
+    val result = for
       int <- ints if int % 2 == 0
-    } yield {
+    yield
       results += int
       val square = int * int
       results += square
       results += square * 2
-    }
 
-    assertEquals(clue(results), clue(ArrayBuffer(2, 4, 8, 4, 16, 32)))
+    assertEquals(results, ArrayBuffer(2, 4, 8, 4, 16, 32))
+  }
+
+  f.test("while loop syntax") { _ =>
+    var i = 0
+
+    while i < 9 do
+      i -= 1
+      i += 2
+
+    assertEquals(i, 9)
+  }
+
+  f.test("while loop with block return") { _ =>
+    val result = {
+      var x = 0
+      while x < 13 do x += 3 
+      x
+    }
+    assertEquals(result, 15)
   }
 
   f.test("basic match expression") { _ => 
-    val i = 3
+    @switch val i = 3
     var number = ""
 
     i match
@@ -107,11 +215,12 @@ class ControlStructures extends BaseFixture {
       case 3 => number = "three"
       case  _ => number = "other"
 
-      assertEquals(clue(number), "three")
+      assertEquals(number, "three")
   }
 
-  f.test("match expressions return values") { _ => 
-    val i = 2
+  f.test("match structures are expressions") { _ => 
+
+   @switch val i = 2
 
     val number = i match
       case 1 => "one"
@@ -119,7 +228,7 @@ class ControlStructures extends BaseFixture {
       case 3 => "three"
       case  _ => "other"
 
-      assertEquals(clue(number), "two")
+      assertEquals(number, "two")
       
   }
 
@@ -131,37 +240,110 @@ class ControlStructures extends BaseFixture {
       case l: List[?] => "List"
       case _ => "Unexpected type"
 
-    assertEquals(clue(matchType("a string")), clue("String containing: a string"))
-    assertEquals(clue(matchType(4.92)), clue("Double"))
-    assertEquals(clue(matchType(List(3, 2, 1))), clue("List"))
+    assertEquals(matchType("a string"), "String containing: a string")
+    assertEquals(matchType(4.92), "Double")
+    assertEquals(matchType(List(3, 2, 1)), "List")
   }
 
-  f.test("division by zero throws ArithmeticException") { _ =>
+  f.test("a lowercase variable on match left captures a default") { _ =>
+    val i = 3
+    val r = i match
+      case 0 => '0'
+      case 1 => '1'
+      case 2 => '2'
+      case x => x
+
+    assertEquals(r, 3)
+  }
+
+  f.test("an uppercase variable on match left uses scope") { _ =>
+    val i, Y = 3
+    val r = i match
+      case 0 => '0'
+      case 1 => '1'
+      case 2 => '2'
+      case Y => '3'
+      case x => 'x' // unreachable
+
+    assertEquals(r, '3')
+  }
+
+  f.test("match can handle multiple values in a single line") { _ =>
+      def even_or_odd(n: Int): String =
+        n match
+          case 1 | 3 | 5 | 7 | 9 => "odd"
+          case 2 | 4 | 6 | 8 | 10 => "even"
+          case n => s"$n is out of bounds"
+
+      assertEquals(even_or_odd(4), "even")
+      assertEquals(even_or_odd(7), "odd")
+      assertEquals(even_or_odd(31), "31 is out of bounds")
+  }
+
+  f.test("match cases can have guards") { _ =>
+    
+    def assert(f: Int => String) =
+      val pairs = Map(
+        1 -> "one",
+        5 -> "between 2 and 5",
+        10 -> "10 or greater",
+        31 -> "10 or greater",
+        -8 -> "0 or less",
+      )
+
+      for (number, range) <- pairs do assertEquals(f(number), range)
+
+    def get_range(i: Int) =
+      i match
+        case 1 => "one"
+        case a if a > 1 && a < 6 => "between 2 and 5"
+        case b if b > 5 && b < 10 => "between 6 and 9"
+        case c if c >= 10 => "10 or greater"
+        case _ => "0 or less"
+
+    assert(get_range)
+
+    // same example using a more idiomatic, readable syntax:
+    def get_range_2(i: Int) =
+      i match
+        case 1 => "one"
+        case a if 1 to 5 contains a => "between 2 and 5"
+        case b if 6 to 9 contains b => "between 6 and 9"
+        case c if c >= 10 => "10 or greater"
+        case _ => "0 or less"
+
+    assert(get_range_2)
+  }
+
+    f.test("fields from classes can be extracted") { _ =>
+
+      case class Person(name: String)
+
+      def speak(p: Person) = p match
+        case Person(name) if name == "Fred" => s"$name says, Yubba dubba doo"
+        case Person(name) if name == "Bam Bam" => s"$name says, Bam bam!"
+
+      assertEquals(speak(Person("Fred")), "Fred says, Yubba dubba doo")
+  }
+
+    f.test("try structures are expressions") { _ =>
 
     var always: String = ""
 
     val exception = try 
       2/0
     catch
-      case nfe: NumberFormatException => "Got a NumberFormatException"
-      case nfe: ArithmeticException => "Got an ArithmeticException"
+      case e: NumberFormatException => "Got a NumberFormatException"
+      case e: ArithmeticException => "Got an ArithmeticException"
     finally 
       always = "This always executes"
 
-    assertEquals(clue(exception), clue("Got an ArithmeticException"))
-    assertEquals(clue(always), clue("This always executes"))
+    assertEquals(exception, "Got an ArithmeticException")
+    assertEquals(always, "This always executes")
   }
 
-  f.test("while loop with block return") { _ =>
-    val result = {
-      var x = 0
-      while x < 13 do x += 3 
-      x
-    }
-    assertEquals(clue(result), 15)
-  }
 }
-
+  
 class DomainModelling extends BaseFixture {
 
   // Object-oriented
@@ -279,7 +461,4 @@ class DomainModelling extends BaseFixture {
 
         assertEquals(result, List(40, 50, 60))
     }
-
-
-    
-  }
+}
