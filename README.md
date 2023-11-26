@@ -9,6 +9,8 @@ Notes on studying Scala 3, mainly from reading documentation such as:
 
 Aside from this README, the [tests](src/test/scala/Suite.scala) contain many runnable examples of some concepts explored here and many only explored there.
 
+There is also a [Jupyter notebooks](notebooks) directory containing a few more in-depth explorations of some of the content treated here.
+
 ## Syntax
 
 ### Assignment
