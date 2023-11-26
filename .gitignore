@@ -13,6 +13,9 @@ project/local-plugins.sbt
 local.sbt
 .scala-build
 
+# Jupyter
+.ipynb_checkpoints
+
 # IDEA
 .idea
 .idea_modules
@@ -28,7 +31,6 @@ metals.sbt
 
 # Bloop
 .bsp
-
 
 # macOS
 .DS_Store
