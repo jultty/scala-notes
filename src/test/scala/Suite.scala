@@ -326,7 +326,46 @@ class ControlStructures extends BaseFixture {
       assertEquals(speak(Person("Fred")), "Fred says, Yubba dubba doo")
   }
 
-    f.test("try structures are expressions") { _ =>
+  f.test("extractor methods can initialize values") { _ =>
+    import scala.util.Random
+
+    object CustomerID:
+      def apply(name: String) = s"$name--${Random.nextLong().abs}"
+      def unapply(customerID: String): Option[String] =
+        val stringArray: Array[String] = customerID.split("--").nn.map(_.nn)
+        if stringArray.tail.nonEmpty then Option(stringArray.head) else None
+
+    val customer = CustomerID("Sukyoung")
+
+    // these three assignments are all equivalent:
+    val name1 = customer match
+      case CustomerID(name) => name
+      case _ => "Couldn't extract name"
+
+    // @unchecked quiets a "pattern binding uses refutable extractor" warning
+    val CustomerID(name2) = customer: @unchecked
+
+    @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
+    val name3 = CustomerID.unapply(customer).get
+
+    assertEquals(name1, "Sukyoung")
+    assertEquals(name1, name2)
+    assertEquals(name1, name3)
+
+    // the corresponding instance doesn't really have to exist
+    // it will regardless return the unapply result for the given string:
+    val CustomerID(name4) = s"Jane--0": @unchecked
+
+    assertEquals(name4, "Jane")
+
+    // dows throw since the body of unapply fails to run for lack of a `-` char
+    intercept[scala.MatchError]{
+      val CustomerID(name5) = s"Peter-000000000000": @unchecked
+      println(name5)
+    }
+  }
+
+  f.test("try structures are expressions") { _ =>
 
     var always: String = ""
 
@@ -385,7 +424,7 @@ class DomainModelling extends BaseFixture {
     assertEquals(p.getFullName(), "John Legend")
   }
 
-  f.test("parameters not assigned as val or var exist but are not accessible") { _ =>
+  f.test("parameters not assigned as val or var are not accessible") { _ =>
     class Person(firstName: String, val lastName: String):
       def getFullName() = s"$firstName $lastName"
 
@@ -437,28 +476,29 @@ class DomainModelling extends BaseFixture {
     )
   }
 
-    f.test("product types can be defined using case classes") { _ =>
-      case class Musician(
-        name: String,
-        vocation: String,
-      )
+  f.test("product types can be defined using case classes") { _ =>
+    case class Musician(
+      name: String,
+      vocation: String,
+    )
 
-      val m = Musician("Reginald", "Singer")
-      assertEquals(m.name, "Reginald")
-      assertEquals(m.vocation, "Singer")
+    val m = Musician("Reginald", "Singer")
+    assertEquals(m.name, "Reginald")
+    assertEquals(m.vocation, "Singer")
 
-      // m.name = "Joe" // won't compile: Reassignment to val
-      val m2 = m.copy(name = "나윤선")
-      assertEquals(m2.name, "나윤선")
-    }
+    // m.name = "Joe" // won't compile: Reassignment to val
+    val m2 = m.copy(name = "나윤선")
+    assertEquals(m2.name, "나윤선")
+  }
 
-    f.test("methods can be chained for less assignments and brevity") { _ =>
-      val nums = (1 to 10).toList
+  f.test("methods can be chained for less assignments and brevity") { _ =>
+    val nums = (1 to 10).toList
 
-      val result = nums.filter(_ > 3)
-        .filter(_ < 7)
-        .map(_ * 10)
+    val result = nums.filter(_ > 3)
+      .filter(_ < 7)
+      .map(_ * 10)
 
-        assertEquals(result, List(40, 50, 60))
-    }
+      assertEquals(result, List(40, 50, 60))
+  }
+
 }
