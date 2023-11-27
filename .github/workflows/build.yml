@@ -20,6 +20,6 @@ jobs:
     - name: Test
       run: sbt test
     - name: Lint
-      run: sbt "scalafix --check""
+      run: sbt "scalafix --check"
     - name: Run
       run: sbt run
