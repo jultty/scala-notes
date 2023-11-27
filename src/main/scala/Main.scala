@@ -11,4 +11,4 @@ def print_environment_properties: Unit =
     s"${Properties.javaVmVersion} " +
     s"(${Properties.javaVmInfo})"
   )
-  println(s"JDK Home: ${Properties.jdkHome}")
+  println(s"JDK Home: ${Properties.jdkHome}");
