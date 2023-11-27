@@ -13,8 +13,7 @@ lazy val root = project
     test / watchBeforeCommand := Watch.clearScreen,
     Global / onChangedBuildSource := ReloadOnSourceChanges,
     Global / cancelable := true,
-
-    libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
+    semanticdbEnabled := true,
 
     scalacOptions ++= Seq(
       "-encoding", "utf8",
@@ -23,6 +22,15 @@ lazy val root = project
       "-Yexplicit-nulls",
       "-Ysafe-init",
       ),
+
+    libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
+
+    scalafixConfig := Some(file("project/scalafix.conf")),
+    ThisBuild / scalafixDependencies ++= Seq(
+      "io.github.ghostbuster91.scalafix-unified" %% "unified" % "0.0.8",
+      "com.github.xuwei-k" %% "scalafix-rules" % "0.3.1",
+      "net.pixiv" %% "scalafix-pixiv-rule" % "4.5.3",
+    ),
 
     wartremoverErrors ++= Warts.unsafe.filterNot(Set(
       Wart.Var, Wart.Any
